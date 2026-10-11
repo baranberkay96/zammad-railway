@@ -295,8 +295,8 @@
           "required": true
         },
         "ZAMMAD_ADMIN_PASSWORD": {
-          "defaultValue": "Zm7-${{secret(24)}}",
-          "description": "Password of the first administrator (generated; meets Zammad's password policy). Change it after login.",
+          "defaultValue": "ZaMb7-${{secret(24)}}",
+          "description": "Password of the first administrator (generated; meets Zammad's password policy). Change it after login. The fixed ZaMb7- prefix guarantees Zammad's password policy (2 upper, 2 lower, digit).",
           "required": false
         },
         "ZAMMAD_ADMIN_FIRSTNAME": {

@@ -117,7 +117,7 @@ All Zammad services use **Source:** GitHub repo `baranberkay96/zammad-railway`, 
 | `ZAMMAD_FQDN` | `${{zammad-nginx.RAILWAY_PUBLIC_DOMAIN}}` | Public host name; applied on first install (later: Admin > System > Base). |
 | `ZAMMAD_HTTP_TYPE` | `https` | Public scheme; applied on first install. |
 | `ZAMMAD_ADMIN_EMAIL` | **required input** | E-mail address (and login) of the first administrator, created on first deploy. |
-| `ZAMMAD_ADMIN_PASSWORD` | `Zm7-${{secret(24)}}` | Password of the first administrator (generated; meets Zammad's password policy). Change it after login. |
+| `ZAMMAD_ADMIN_PASSWORD` | `ZaMb7-${{secret(24)}}` | Password of the first administrator (generated; meets Zammad's password policy). Change it after login. |
 | `ZAMMAD_ADMIN_FIRSTNAME` | `Admin` | First name of the first administrator. |
 | `ZAMMAD_ADMIN_LASTNAME` | `User` | Last name of the first administrator. |
 | `ZAMMAD_ORGANIZATION` | *(empty)* | Optional organization name shown in Zammad (Admin > System > Branding). |
@@ -278,3 +278,7 @@ Railway prices: RAM $10/GB-month, vCPU $20/vCPU-month, volume $0.15/GB-month. Id
 - **Railway Bucket for attachments** (optional S3) not tested against a real Bucket; the AWS SDK uses virtual-hosted style by default, which matches Railway's documented style.
 - **Outbound mail:** Railway allows SMTP only on Pro; the Microsoft 365 (Graph) channel is the HTTPS alternative. Google's channel uses SMTP for sending.
 - **Restore** needs the app roles stopped manually (upstream pauses them through a shared backup volume, which Railway cannot provide).
+
+## Deploy test findings (2026-10-11)
+
+First Railway test: zammad-railsserver crashed creating the first admin — Zammad's password policy requires at least 2 lowercase and 2 uppercase characters, and the generated `Zm7-${{secret(24)}}` does not always contain them. The default is now `ZaMb7-${{secret(24)}}`, which always satisfies the policy.
