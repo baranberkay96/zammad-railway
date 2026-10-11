@@ -1,0 +1,1022 @@
+{
+  "name": "Zammad 7 Helpdesk and Ticketing",
+  "description": "Email, chat and web tickets in one helpdesk. Open Zendesk alternative.",
+  "category": "Other",
+  "tags": [
+    "zammad",
+    "helpdesk",
+    "ticketing",
+    "customer-support",
+    "live-chat",
+    "elasticsearch",
+    "postgres"
+  ],
+  "image": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zammad.svg",
+  "upstream": {
+    "repo": "zammad/zammad-docker-compose",
+    "version": "v17.5.2 (Zammad 7.2.2)",
+    "checked": "2026-10-11"
+  },
+  "services": {
+    "zammad-nginx": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zammad.svg",
+      "source": {
+        "repo": "baranberkay96/zammad-railway",
+        "rootDirectory": "/services/zammad"
+      },
+      "startCommand": "/usr/local/bin/railway-zammad zammad-nginx",
+      "preDeployCommand": null,
+      "healthcheckPath": "/",
+      "healthcheckTimeout": 1200,
+      "restartPolicyType": "ALWAYS",
+      "restartPolicyMaxRetries": null,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": true,
+      "targetPort": 8080,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "POSTGRESQL_HOST": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_HOST}}",
+          "description": "PostgreSQL host (private network).",
+          "required": false
+        },
+        "POSTGRESQL_PORT": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_PORT}}",
+          "description": "PostgreSQL port.",
+          "required": false
+        },
+        "POSTGRESQL_USER": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_USER}}",
+          "description": "PostgreSQL user.",
+          "required": false
+        },
+        "POSTGRESQL_PASS": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_PASS}}",
+          "description": "PostgreSQL password.",
+          "required": false
+        },
+        "POSTGRESQL_DB": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_DB}}",
+          "description": "Database name; created by zammad-init on first deploy.",
+          "required": false
+        },
+        "POSTGRESQL_DB_CREATE": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_DB_CREATE}}",
+          "description": "Let zammad-init create the database (the Railway Postgres user may create databases).",
+          "required": false
+        },
+        "POSTGRESQL_OPTIONS": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_OPTIONS}}",
+          "description": "Rails connection pool options (must be at least MAX_THREADS).",
+          "required": false
+        },
+        "REDIS_URL": {
+          "defaultValue": "${{zammad-railsserver.REDIS_URL}}",
+          "description": "Redis for websocket sessions and background coordination.",
+          "required": false
+        },
+        "MEMCACHE_SERVERS": {
+          "defaultValue": "${{zammad-railsserver.MEMCACHE_SERVERS}}",
+          "description": "Memcached for the Rails cache.",
+          "required": false
+        },
+        "ELASTICSEARCH_ENABLED": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_ENABLED}}",
+          "description": "Use Elasticsearch for search (recommended by Zammad).",
+          "required": false
+        },
+        "ELASTICSEARCH_SCHEMA": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_SCHEMA}}",
+          "description": "Elasticsearch scheme (plain HTTP on the private network).",
+          "required": false
+        },
+        "ELASTICSEARCH_HOST": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_HOST}}",
+          "description": "Elasticsearch host.",
+          "required": false
+        },
+        "ELASTICSEARCH_PORT": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_PORT}}",
+          "description": "Elasticsearch port.",
+          "required": false
+        },
+        "ELASTICSEARCH_USER": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_USER}}",
+          "description": "Elasticsearch user.",
+          "required": false
+        },
+        "ELASTICSEARCH_PASS": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_PASS}}",
+          "description": "Elasticsearch password.",
+          "required": false
+        },
+        "ELASTICSEARCH_NAMESPACE": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_NAMESPACE}}",
+          "description": "Prefix of Zammad's Elasticsearch indexes.",
+          "required": false
+        },
+        "RAILS_TRUSTED_PROXIES": {
+          "defaultValue": "${{zammad-railsserver.RAILS_TRUSTED_PROXIES}}",
+          "description": "Proxies (nginx, Railway's edge) whose X-Forwarded-For Zammad trusts, for real client IPs and rate limiting.",
+          "required": false
+        },
+        "TZ": {
+          "defaultValue": "${{zammad-railsserver.TZ}}",
+          "description": "Container time zone (logs, backup schedule).",
+          "required": false
+        },
+        "PORT": {
+          "defaultValue": "8080",
+          "description": "Port nginx listens on; Railway routes the public domain and its healthcheck here.",
+          "required": false
+        },
+        "NGINX_PORT": {
+          "defaultValue": "8080",
+          "description": "Port nginx listens on (IPv4 and IPv6).",
+          "required": false
+        },
+        "NGINX_SERVER_SCHEME": {
+          "defaultValue": "https",
+          "description": "Scheme passed to Zammad in X-Forwarded-Proto; Railway terminates TLS, so https (otherwise logins fail with CSRF errors).",
+          "required": false
+        },
+        "NGINX_CLIENT_MAX_BODY_SIZE": {
+          "defaultValue": "50M",
+          "description": "Maximum upload size.",
+          "required": false
+        },
+        "ZAMMAD_RAILSSERVER_HOST": {
+          "defaultValue": "${{zammad-railsserver.RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Rails server (private network).",
+          "required": false
+        },
+        "ZAMMAD_RAILSSERVER_PORT": {
+          "defaultValue": "${{zammad-railsserver.ZAMMAD_RAILSSERVER_PORT}}",
+          "description": "Rails server port.",
+          "required": false
+        },
+        "ZAMMAD_WEBSOCKET_HOST": {
+          "defaultValue": "${{zammad-websocket.RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Websocket server (private network).",
+          "required": false
+        },
+        "ZAMMAD_WEBSOCKET_PORT": {
+          "defaultValue": "${{zammad-websocket.ZAMMAD_WEBSOCKET_PORT}}",
+          "description": "Websocket server port.",
+          "required": false
+        }
+      }
+    },
+    "zammad-railsserver": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zammad.svg",
+      "source": {
+        "repo": "baranberkay96/zammad-railway",
+        "rootDirectory": "/services/zammad"
+      },
+      "startCommand": "/usr/local/bin/railway-zammad zammad-railsserver",
+      "preDeployCommand": "/usr/local/bin/railway-zammad zammad-init",
+      "preDeployTimeoutSeconds": 900,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ALWAYS",
+      "restartPolicyMaxRetries": null,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "POSTGRESQL_HOST": {
+          "defaultValue": "${{Postgres.PGHOST}}",
+          "description": "PostgreSQL host (private network).",
+          "required": false
+        },
+        "POSTGRESQL_PORT": {
+          "defaultValue": "${{Postgres.PGPORT}}",
+          "description": "PostgreSQL port.",
+          "required": false
+        },
+        "POSTGRESQL_USER": {
+          "defaultValue": "${{Postgres.PGUSER}}",
+          "description": "PostgreSQL user.",
+          "required": false
+        },
+        "POSTGRESQL_PASS": {
+          "defaultValue": "${{Postgres.PGPASSWORD}}",
+          "description": "PostgreSQL password.",
+          "required": false
+        },
+        "POSTGRESQL_DB": {
+          "defaultValue": "zammad_production",
+          "description": "Database name; created by zammad-init on first deploy.",
+          "required": false
+        },
+        "POSTGRESQL_DB_CREATE": {
+          "defaultValue": "true",
+          "description": "Let zammad-init create the database (the Railway Postgres user may create databases).",
+          "required": false
+        },
+        "POSTGRESQL_OPTIONS": {
+          "defaultValue": "?pool=50",
+          "description": "Rails connection pool options (must be at least MAX_THREADS).",
+          "required": false
+        },
+        "REDIS_URL": {
+          "defaultValue": "${{Redis.REDIS_URL}}",
+          "description": "Redis for websocket sessions and background coordination.",
+          "required": false
+        },
+        "MEMCACHE_SERVERS": {
+          "defaultValue": "${{Memcached.RAILWAY_PRIVATE_DOMAIN}}:11211",
+          "description": "Memcached for the Rails cache.",
+          "required": false
+        },
+        "ELASTICSEARCH_ENABLED": {
+          "defaultValue": "true",
+          "description": "Use Elasticsearch for search (recommended by Zammad).",
+          "required": false
+        },
+        "ELASTICSEARCH_SCHEMA": {
+          "defaultValue": "http",
+          "description": "Elasticsearch scheme (plain HTTP on the private network).",
+          "required": false
+        },
+        "ELASTICSEARCH_HOST": {
+          "defaultValue": "${{Elasticsearch.RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Elasticsearch host.",
+          "required": false
+        },
+        "ELASTICSEARCH_PORT": {
+          "defaultValue": "9200",
+          "description": "Elasticsearch port.",
+          "required": false
+        },
+        "ELASTICSEARCH_USER": {
+          "defaultValue": "elastic",
+          "description": "Elasticsearch user.",
+          "required": false
+        },
+        "ELASTICSEARCH_PASS": {
+          "defaultValue": "${{Elasticsearch.ELASTIC_PASSWORD}}",
+          "description": "Elasticsearch password.",
+          "required": false
+        },
+        "ELASTICSEARCH_NAMESPACE": {
+          "defaultValue": "zammad",
+          "description": "Prefix of Zammad's Elasticsearch indexes.",
+          "required": false
+        },
+        "RAILS_TRUSTED_PROXIES": {
+          "defaultValue": "127.0.0.1,::1,10.0.0.0/8,100.64.0.0/10,172.16.0.0/12,192.168.0.0/16,fd00::/8",
+          "description": "Proxies (nginx, Railway's edge) whose X-Forwarded-For Zammad trusts, for real client IPs and rate limiting.",
+          "required": false
+        },
+        "TZ": {
+          "defaultValue": "UTC",
+          "description": "Container time zone (logs, backup schedule).",
+          "required": false
+        },
+        "ZAMMAD_FQDN": {
+          "defaultValue": "${{zammad-nginx.RAILWAY_PUBLIC_DOMAIN}}",
+          "description": "Public host name; applied on first install (later: Admin > System > Base).",
+          "required": false
+        },
+        "ZAMMAD_HTTP_TYPE": {
+          "defaultValue": "https",
+          "description": "Public scheme; applied on first install.",
+          "required": false
+        },
+        "ZAMMAD_ADMIN_EMAIL": {
+          "defaultValue": "",
+          "description": "E-mail address (and login) of the first administrator, created on first deploy.",
+          "required": true
+        },
+        "ZAMMAD_ADMIN_PASSWORD": {
+          "defaultValue": "Zm7-${{secret(24)}}",
+          "description": "Password of the first administrator (generated; meets Zammad's password policy). Change it after login.",
+          "required": false
+        },
+        "ZAMMAD_ADMIN_FIRSTNAME": {
+          "defaultValue": "Admin",
+          "description": "First name of the first administrator.",
+          "required": false
+        },
+        "ZAMMAD_ADMIN_LASTNAME": {
+          "defaultValue": "User",
+          "description": "Last name of the first administrator.",
+          "required": false
+        },
+        "ZAMMAD_ORGANIZATION": {
+          "defaultValue": "",
+          "description": "Optional organization name shown in Zammad (Admin > System > Branding).",
+          "required": false
+        },
+        "ZAMMAD_RAILSSERVER_PORT": {
+          "defaultValue": "3000",
+          "description": "Port Puma listens on (IPv4 and IPv6).",
+          "required": false
+        },
+        "ZAMMAD_WEB_CONCURRENCY": {
+          "defaultValue": "2",
+          "description": "Puma worker processes (about 300-500 MB each).",
+          "required": false
+        },
+        "MAX_THREADS": {
+          "defaultValue": "15",
+          "description": "Puma threads per worker.",
+          "required": false
+        },
+        "S3_BUCKET": {
+          "defaultValue": "",
+          "description": "Optional: store attachments in S3 (e.g. a Railway Bucket) instead of PostgreSQL. Bucket name; set all S3_* variables before the first deploy.",
+          "required": false
+        },
+        "S3_ENDPOINT": {
+          "defaultValue": "",
+          "description": "Optional S3 endpoint URL, e.g. https://t3.storageapi.dev.",
+          "required": false
+        },
+        "S3_REGION": {
+          "defaultValue": "",
+          "description": "Optional S3 region (Railway Buckets: auto).",
+          "required": false
+        },
+        "S3_ACCESS_KEY_ID": {
+          "defaultValue": "",
+          "description": "Optional S3 access key.",
+          "required": false
+        },
+        "S3_SECRET_ACCESS_KEY": {
+          "defaultValue": "",
+          "description": "Optional S3 secret key.",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "30",
+          "description": "Let running requests finish on redeploy.",
+          "required": false
+        }
+      }
+    },
+    "zammad-scheduler": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zammad.svg",
+      "source": {
+        "repo": "baranberkay96/zammad-railway",
+        "rootDirectory": "/services/zammad"
+      },
+      "startCommand": "/usr/local/bin/railway-zammad zammad-scheduler",
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ALWAYS",
+      "restartPolicyMaxRetries": null,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "POSTGRESQL_HOST": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_HOST}}",
+          "description": "PostgreSQL host (private network).",
+          "required": false
+        },
+        "POSTGRESQL_PORT": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_PORT}}",
+          "description": "PostgreSQL port.",
+          "required": false
+        },
+        "POSTGRESQL_USER": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_USER}}",
+          "description": "PostgreSQL user.",
+          "required": false
+        },
+        "POSTGRESQL_PASS": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_PASS}}",
+          "description": "PostgreSQL password.",
+          "required": false
+        },
+        "POSTGRESQL_DB": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_DB}}",
+          "description": "Database name; created by zammad-init on first deploy.",
+          "required": false
+        },
+        "POSTGRESQL_DB_CREATE": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_DB_CREATE}}",
+          "description": "Let zammad-init create the database (the Railway Postgres user may create databases).",
+          "required": false
+        },
+        "POSTGRESQL_OPTIONS": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_OPTIONS}}",
+          "description": "Rails connection pool options (must be at least MAX_THREADS).",
+          "required": false
+        },
+        "REDIS_URL": {
+          "defaultValue": "${{zammad-railsserver.REDIS_URL}}",
+          "description": "Redis for websocket sessions and background coordination.",
+          "required": false
+        },
+        "MEMCACHE_SERVERS": {
+          "defaultValue": "${{zammad-railsserver.MEMCACHE_SERVERS}}",
+          "description": "Memcached for the Rails cache.",
+          "required": false
+        },
+        "ELASTICSEARCH_ENABLED": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_ENABLED}}",
+          "description": "Use Elasticsearch for search (recommended by Zammad).",
+          "required": false
+        },
+        "ELASTICSEARCH_SCHEMA": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_SCHEMA}}",
+          "description": "Elasticsearch scheme (plain HTTP on the private network).",
+          "required": false
+        },
+        "ELASTICSEARCH_HOST": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_HOST}}",
+          "description": "Elasticsearch host.",
+          "required": false
+        },
+        "ELASTICSEARCH_PORT": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_PORT}}",
+          "description": "Elasticsearch port.",
+          "required": false
+        },
+        "ELASTICSEARCH_USER": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_USER}}",
+          "description": "Elasticsearch user.",
+          "required": false
+        },
+        "ELASTICSEARCH_PASS": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_PASS}}",
+          "description": "Elasticsearch password.",
+          "required": false
+        },
+        "ELASTICSEARCH_NAMESPACE": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_NAMESPACE}}",
+          "description": "Prefix of Zammad's Elasticsearch indexes.",
+          "required": false
+        },
+        "RAILS_TRUSTED_PROXIES": {
+          "defaultValue": "${{zammad-railsserver.RAILS_TRUSTED_PROXIES}}",
+          "description": "Proxies (nginx, Railway's edge) whose X-Forwarded-For Zammad trusts, for real client IPs and rate limiting.",
+          "required": false
+        },
+        "TZ": {
+          "defaultValue": "${{zammad-railsserver.TZ}}",
+          "description": "Container time zone (logs, backup schedule).",
+          "required": false
+        },
+        "S3_BUCKET": {
+          "defaultValue": "${{zammad-railsserver.S3_BUCKET}}",
+          "description": "Optional: store attachments in S3 (e.g. a Railway Bucket) instead of PostgreSQL. Bucket name; set all S3_* variables before the first deploy.",
+          "required": false
+        },
+        "S3_ENDPOINT": {
+          "defaultValue": "${{zammad-railsserver.S3_ENDPOINT}}",
+          "description": "Optional S3 endpoint URL, e.g. https://t3.storageapi.dev.",
+          "required": false
+        },
+        "S3_REGION": {
+          "defaultValue": "${{zammad-railsserver.S3_REGION}}",
+          "description": "Optional S3 region (Railway Buckets: auto).",
+          "required": false
+        },
+        "S3_ACCESS_KEY_ID": {
+          "defaultValue": "${{zammad-railsserver.S3_ACCESS_KEY_ID}}",
+          "description": "Optional S3 access key.",
+          "required": false
+        },
+        "S3_SECRET_ACCESS_KEY": {
+          "defaultValue": "${{zammad-railsserver.S3_SECRET_ACCESS_KEY}}",
+          "description": "Optional S3 secret key.",
+          "required": false
+        },
+        "ELASTICSEARCH_REINDEX": {
+          "defaultValue": "true",
+          "description": "Build the search index when it does not exist yet (first install, new Elasticsearch volume).",
+          "required": false
+        },
+        "ELASTICSEARCH_WAIT_SECONDS": {
+          "defaultValue": "900",
+          "description": "How long to wait for Elasticsearch before starting without the index check.",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "60",
+          "description": "Let running background jobs finish on redeploy.",
+          "required": false
+        }
+      }
+    },
+    "zammad-websocket": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zammad.svg",
+      "source": {
+        "repo": "baranberkay96/zammad-railway",
+        "rootDirectory": "/services/zammad"
+      },
+      "startCommand": "/usr/local/bin/railway-zammad zammad-websocket",
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ALWAYS",
+      "restartPolicyMaxRetries": null,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "POSTGRESQL_HOST": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_HOST}}",
+          "description": "PostgreSQL host (private network).",
+          "required": false
+        },
+        "POSTGRESQL_PORT": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_PORT}}",
+          "description": "PostgreSQL port.",
+          "required": false
+        },
+        "POSTGRESQL_USER": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_USER}}",
+          "description": "PostgreSQL user.",
+          "required": false
+        },
+        "POSTGRESQL_PASS": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_PASS}}",
+          "description": "PostgreSQL password.",
+          "required": false
+        },
+        "POSTGRESQL_DB": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_DB}}",
+          "description": "Database name; created by zammad-init on first deploy.",
+          "required": false
+        },
+        "POSTGRESQL_DB_CREATE": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_DB_CREATE}}",
+          "description": "Let zammad-init create the database (the Railway Postgres user may create databases).",
+          "required": false
+        },
+        "POSTGRESQL_OPTIONS": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_OPTIONS}}",
+          "description": "Rails connection pool options (must be at least MAX_THREADS).",
+          "required": false
+        },
+        "REDIS_URL": {
+          "defaultValue": "${{zammad-railsserver.REDIS_URL}}",
+          "description": "Redis for websocket sessions and background coordination.",
+          "required": false
+        },
+        "MEMCACHE_SERVERS": {
+          "defaultValue": "${{zammad-railsserver.MEMCACHE_SERVERS}}",
+          "description": "Memcached for the Rails cache.",
+          "required": false
+        },
+        "ELASTICSEARCH_ENABLED": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_ENABLED}}",
+          "description": "Use Elasticsearch for search (recommended by Zammad).",
+          "required": false
+        },
+        "ELASTICSEARCH_SCHEMA": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_SCHEMA}}",
+          "description": "Elasticsearch scheme (plain HTTP on the private network).",
+          "required": false
+        },
+        "ELASTICSEARCH_HOST": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_HOST}}",
+          "description": "Elasticsearch host.",
+          "required": false
+        },
+        "ELASTICSEARCH_PORT": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_PORT}}",
+          "description": "Elasticsearch port.",
+          "required": false
+        },
+        "ELASTICSEARCH_USER": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_USER}}",
+          "description": "Elasticsearch user.",
+          "required": false
+        },
+        "ELASTICSEARCH_PASS": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_PASS}}",
+          "description": "Elasticsearch password.",
+          "required": false
+        },
+        "ELASTICSEARCH_NAMESPACE": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_NAMESPACE}}",
+          "description": "Prefix of Zammad's Elasticsearch indexes.",
+          "required": false
+        },
+        "RAILS_TRUSTED_PROXIES": {
+          "defaultValue": "${{zammad-railsserver.RAILS_TRUSTED_PROXIES}}",
+          "description": "Proxies (nginx, Railway's edge) whose X-Forwarded-For Zammad trusts, for real client IPs and rate limiting.",
+          "required": false
+        },
+        "TZ": {
+          "defaultValue": "${{zammad-railsserver.TZ}}",
+          "description": "Container time zone (logs, backup schedule).",
+          "required": false
+        },
+        "ZAMMAD_WEBSOCKET_PORT": {
+          "defaultValue": "6042",
+          "description": "Port of the legacy websocket server.",
+          "required": false
+        },
+        "ZAMMAD_WEBSOCKET_BIND": {
+          "defaultValue": "::",
+          "description": "Bind address; '::' accepts IPv4 and IPv6 on Railway's private network.",
+          "required": false
+        }
+      }
+    },
+    "zammad-backup": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zammad.svg",
+      "source": {
+        "repo": "baranberkay96/zammad-railway",
+        "rootDirectory": "/services/zammad"
+      },
+      "startCommand": "/usr/local/bin/railway-zammad zammad-backup",
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ALWAYS",
+      "restartPolicyMaxRetries": null,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/var/tmp/zammad"
+      },
+      "variables": {
+        "POSTGRESQL_HOST": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_HOST}}",
+          "description": "PostgreSQL host (private network).",
+          "required": false
+        },
+        "POSTGRESQL_PORT": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_PORT}}",
+          "description": "PostgreSQL port.",
+          "required": false
+        },
+        "POSTGRESQL_USER": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_USER}}",
+          "description": "PostgreSQL user.",
+          "required": false
+        },
+        "POSTGRESQL_PASS": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_PASS}}",
+          "description": "PostgreSQL password.",
+          "required": false
+        },
+        "POSTGRESQL_DB": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_DB}}",
+          "description": "Database name; created by zammad-init on first deploy.",
+          "required": false
+        },
+        "POSTGRESQL_DB_CREATE": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_DB_CREATE}}",
+          "description": "Let zammad-init create the database (the Railway Postgres user may create databases).",
+          "required": false
+        },
+        "POSTGRESQL_OPTIONS": {
+          "defaultValue": "${{zammad-railsserver.POSTGRESQL_OPTIONS}}",
+          "description": "Rails connection pool options (must be at least MAX_THREADS).",
+          "required": false
+        },
+        "REDIS_URL": {
+          "defaultValue": "${{zammad-railsserver.REDIS_URL}}",
+          "description": "Redis for websocket sessions and background coordination.",
+          "required": false
+        },
+        "MEMCACHE_SERVERS": {
+          "defaultValue": "${{zammad-railsserver.MEMCACHE_SERVERS}}",
+          "description": "Memcached for the Rails cache.",
+          "required": false
+        },
+        "ELASTICSEARCH_ENABLED": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_ENABLED}}",
+          "description": "Use Elasticsearch for search (recommended by Zammad).",
+          "required": false
+        },
+        "ELASTICSEARCH_SCHEMA": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_SCHEMA}}",
+          "description": "Elasticsearch scheme (plain HTTP on the private network).",
+          "required": false
+        },
+        "ELASTICSEARCH_HOST": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_HOST}}",
+          "description": "Elasticsearch host.",
+          "required": false
+        },
+        "ELASTICSEARCH_PORT": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_PORT}}",
+          "description": "Elasticsearch port.",
+          "required": false
+        },
+        "ELASTICSEARCH_USER": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_USER}}",
+          "description": "Elasticsearch user.",
+          "required": false
+        },
+        "ELASTICSEARCH_PASS": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_PASS}}",
+          "description": "Elasticsearch password.",
+          "required": false
+        },
+        "ELASTICSEARCH_NAMESPACE": {
+          "defaultValue": "${{zammad-railsserver.ELASTICSEARCH_NAMESPACE}}",
+          "description": "Prefix of Zammad's Elasticsearch indexes.",
+          "required": false
+        },
+        "RAILS_TRUSTED_PROXIES": {
+          "defaultValue": "${{zammad-railsserver.RAILS_TRUSTED_PROXIES}}",
+          "description": "Proxies (nginx, Railway's edge) whose X-Forwarded-For Zammad trusts, for real client IPs and rate limiting.",
+          "required": false
+        },
+        "TZ": {
+          "defaultValue": "${{zammad-railsserver.TZ}}",
+          "description": "Container time zone (logs, backup schedule).",
+          "required": false
+        },
+        "BACKUP_DIR": {
+          "defaultValue": "/var/tmp/zammad",
+          "description": "Backup directory (this service's volume).",
+          "required": false
+        },
+        "BACKUP_TIME": {
+          "defaultValue": "03:00",
+          "description": "Daily backup time (TZ).",
+          "required": false
+        },
+        "HOLD_DAYS": {
+          "defaultValue": "10",
+          "description": "Days to keep backups.",
+          "required": false
+        },
+        "BACKUP_ON_START": {
+          "defaultValue": "false",
+          "description": "Also back up whenever the service starts.",
+          "required": false
+        },
+        "NO_FILE_BACKUP": {
+          "defaultValue": "yes",
+          "description": "Skip the storage-directory archive: attachments are in PostgreSQL (or S3), so the database dump is the backup.",
+          "required": false
+        },
+        "RAILWAY_RUN_UID": {
+          "defaultValue": "0",
+          "description": "Run as root so the backup volume (mounted root-owned) is writable, as upstream runs this container.",
+          "required": false
+        }
+      }
+    },
+    "Elasticsearch": {
+      "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/elasticsearch.svg",
+      "source": {
+        "repo": "baranberkay96/zammad-railway",
+        "rootDirectory": "/services/elasticsearch"
+      },
+      "startCommand": null,
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/usr/share/elasticsearch/data"
+      },
+      "variables": {
+        "discovery.type": {
+          "defaultValue": "single-node",
+          "description": "Single-node cluster (also skips production bootstrap checks).",
+          "required": false
+        },
+        "xpack.security.enabled": {
+          "defaultValue": "true",
+          "description": "Require the elastic user's password.",
+          "required": false
+        },
+        "xpack.security.http.ssl.enabled": {
+          "defaultValue": "false",
+          "description": "Plain HTTP inside the private network.",
+          "required": false
+        },
+        "xpack.security.transport.ssl.enabled": {
+          "defaultValue": "false",
+          "description": "No transport TLS for a single node.",
+          "required": false
+        },
+        "ELASTIC_PASSWORD": {
+          "defaultValue": "${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+          "description": "Password of the elastic user (generated).",
+          "required": false
+        },
+        "ES_JAVA_OPTS": {
+          "defaultValue": "-Xms1g -Xmx1g",
+          "description": "JVM heap (upstream default 1 GB). Keep about half of the RAM you give Elasticsearch.",
+          "required": false
+        },
+        "network.host": {
+          "defaultValue": "0.0.0.0",
+          "description": "Bind address. 0.0.0.0, not '::': the image writes these settings to YAML unquoted and '::' breaks the parse.",
+          "required": false
+        },
+        "node.store.allow_mmap": {
+          "defaultValue": "false",
+          "description": "Do not depend on the host's vm.max_map_count, which containers cannot change.",
+          "required": false
+        },
+        "bootstrap.memory_lock": {
+          "defaultValue": "false",
+          "description": "memlock ulimits cannot be raised on Railway.",
+          "required": false
+        },
+        "ingest.geoip.downloader.enabled": {
+          "defaultValue": "false",
+          "description": "Skip GeoIP database downloads (unused by Zammad).",
+          "required": false
+        },
+        "xpack.ml.enabled": {
+          "defaultValue": "false",
+          "description": "Machine learning features off (unused, saves memory).",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "60",
+          "description": "Allow a clean shutdown on redeploy.",
+          "required": false
+        }
+      }
+    },
+    "Memcached": {
+      "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/memcached.svg",
+      "source": {
+        "image": "memcached:1.6.45-alpine"
+      },
+      "startCommand": "/bin/sh -c \"exec memcached -m ${MEMCACHED_MEMORY:-256}\"",
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": null,
+      "variables": {
+        "MEMCACHED_MEMORY": {
+          "defaultValue": "256",
+          "description": "Cache size in MB (upstream: 256).",
+          "required": false
+        }
+      }
+    },
+    "Postgres": {
+      "icon": "https://devicons.railway.app/i/postgresql.svg",
+      "source": {
+        "image": "ghcr.io/railwayapp-templates/postgres-ssl:18"
+      },
+      "startCommand": null,
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/var/lib/postgresql/data"
+      },
+      "variables": {
+        "PGDATA": {
+          "defaultValue": "/var/lib/postgresql/data/pgdata",
+          "description": "Location where the database will be initialized.",
+          "required": false
+        },
+        "PGHOST": {
+          "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Railway Private Domain Name.",
+          "required": false
+        },
+        "PGPORT": {
+          "defaultValue": "5432",
+          "description": "Port to connect to Postgres.",
+          "required": false
+        },
+        "PGUSER": {
+          "defaultValue": "${{ POSTGRES_USER }}",
+          "description": "Required variable for Data panel.",
+          "required": false
+        },
+        "PGDATABASE": {
+          "defaultValue": "${{POSTGRES_DB}}",
+          "description": "Required variable for the data panel.",
+          "required": false
+        },
+        "PGPASSWORD": {
+          "defaultValue": "${{POSTGRES_PASSWORD}}",
+          "description": "Required variable for Data panel.",
+          "required": false
+        },
+        "POSTGRES_DB": {
+          "defaultValue": "railway",
+          "description": "Default database created when image is started.",
+          "required": false
+        },
+        "DATABASE_URL": {
+          "defaultValue": "postgresql://${{PGUSER}}:${{POSTGRES_PASSWORD}}@${{RAILWAY_PRIVATE_DOMAIN}}:5432/${{PGDATABASE}}",
+          "description": "URL to connect to Postgres database.",
+          "required": false
+        },
+        "POSTGRES_USER": {
+          "defaultValue": "postgres",
+          "description": "User to connect to Postgres DB.",
+          "required": false
+        },
+        "SSL_CERT_DAYS": {
+          "defaultValue": "820",
+          "description": "SSL certificate expiry in days.",
+          "required": false
+        },
+        "POSTGRES_PASSWORD": {
+          "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
+          "description": "Password to connect to DB.",
+          "required": false
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "60",
+          "description": "Allow Postgres to cleanly shut down.",
+          "required": false
+        }
+      }
+    },
+    "Redis": {
+      "icon": "https://cdn.sanity.io/images/sy1jschh/production/0ce0bfdcfbdbf69662b1116671f97c2dd788b655-157x157.svg",
+      "source": {
+        "image": "redis:8.2"
+      },
+      "startCommand": "/bin/sh -c \"rm -rf $RAILWAY_VOLUME_MOUNT_PATH/lost+found/ && exec docker-entrypoint.sh redis-server --requirepass $REDIS_PASSWORD --save 60 1 --dir $RAILWAY_VOLUME_MOUNT_PATH\"",
+      "preDeployCommand": null,
+      "healthcheckPath": null,
+      "healthcheckTimeout": null,
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 10,
+      "numReplicas": 1,
+      "cronSchedule": null,
+      "publicDomain": false,
+      "targetPort": null,
+      "tcpProxy": null,
+      "volume": {
+        "mountPath": "/data"
+      },
+      "variables": {
+        "REDISHOST": {
+          "defaultValue": "${{RAILWAY_PRIVATE_DOMAIN}}",
+          "description": "Private network hostname of the Redis service, only resolvable from services in the same environment.",
+          "required": false
+        },
+        "REDISPORT": {
+          "defaultValue": "6379",
+          "description": "Port that Redis listens on.",
+          "required": false
+        },
+        "REDISUSER": {
+          "defaultValue": "default",
+          "description": "Username for authenticating with Redis.",
+          "required": false
+        },
+        "REDIS_URL": {
+          "defaultValue": "redis://${{ REDISUSER }}:${{ REDIS_PASSWORD }}@${{ REDISHOST }}:${{ REDISPORT }}",
+          "description": "Connection string for connecting to Redis using the private network.",
+          "required": false
+        },
+        "REDISPASSWORD": {
+          "defaultValue": "${{REDIS_PASSWORD}}",
+          "description": "Alias of REDIS_PASSWORD for clients that expect the unseparated name.",
+          "required": false
+        },
+        "REDIS_PASSWORD": {
+          "defaultValue": "${{ secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\") }}",
+          "description": "Randomly generated password for authenticating with Redis.",
+          "required": false
+        }
+      }
+    }
+  }
+}

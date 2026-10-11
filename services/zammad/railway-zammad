@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+# Railway wrapper around Zammad's own docker-entrypoint.
+#
+# Every Zammad service in the template runs this image with a different role:
+#
+#   railway-zammad zammad-init         pre-deploy command of zammad-railsserver
+#   railway-zammad zammad-railsserver  Puma (Rails app + API)
+#   railway-zammad zammad-scheduler    background workers; creates the search index once ES is up
+#   railway-zammad zammad-websocket    legacy websocket server (listens on :: for IPv4 and IPv6)
+#   railway-zammad zammad-nginx        public entry point (nginx -> railsserver / websocket)
+#   railway-zammad zammad-backup       daily pg_dump to this service's volume
+#
+# Differences from the upstream roles are only what Railway needs:
+#   * zammad-init does not block on Elasticsearch (it is a pre-deploy step with a
+#     time limit); the index is created by zammad-scheduler instead.
+#   * nginx resolver lines get brackets for IPv6 name servers, nginx listens on
+#     IPv4 and IPv6, and upstreams are the services' private domains.
+#   * the websocket server binds to :: instead of 0.0.0.0.
+#   * optional S3 storage: S3_URL is assembled (URL-encoded) from the S3_* variables.
+set -o errexit
+set -o pipefail
+
+cd /opt/zammad
+
+ENTRYPOINT=/opt/zammad/bin/docker-entrypoint
+ROLE="${1:-}"
+
+: "${ELASTICSEARCH_ENABLED:=true}"
+: "${ELASTICSEARCH_SCHEMA:=http}"
+: "${ELASTICSEARCH_PORT:=9200}"
+: "${ELASTICSEARCH_NAMESPACE:=zammad}"
+: "${ELASTICSEARCH_REINDEX:=true}"
+: "${ELASTICSEARCH_WAIT_SECONDS:=900}"
+: "${ZAMMAD_RAILSSERVER_PORT:=3000}"
+: "${ZAMMAD_WEBSOCKET_PORT:=6042}"
+: "${ZAMMAD_WEBSOCKET_BIND:=::}"
+: "${NGINX_PORT:=8080}"
+: "${NGINX_CLIENT_MAX_BODY_SIZE:=50M}"
+: "${NGINX_SERVER_NAME:=_}"
+: "${NGINX_SERVER_SCHEME:=\$scheme}"
+
+log() { echo "[railway-zammad] $*"; }
+
+urlencode() {
+  ruby -ruri -e 'print URI.encode_uri_component(ARGV[0])' "$1"
+}
+
+# Optional attachment storage on S3 (e.g. a Railway Bucket). Zammad reads S3_URL;
+# assembling it here keeps keys with '/', '+' or '@' working.
+if [ -z "${S3_URL:-}" ] && [ -n "${S3_BUCKET:-}" ] && [ -n "${S3_ENDPOINT:-}" ] \
+   && [ -n "${S3_ACCESS_KEY_ID:-}" ] && [ -n "${S3_SECRET_ACCESS_KEY:-}" ]; then
+  s3_host="${S3_ENDPOINT#*://}"
+  s3_scheme="${S3_ENDPOINT%%://*}"
+  [ "$s3_scheme" = "$S3_ENDPOINT" ] && s3_scheme=https
+  S3_URL="${s3_scheme}://$(urlencode "$S3_ACCESS_KEY_ID"):$(urlencode "$S3_SECRET_ACCESS_KEY")@${s3_host%/}/$(urlencode "$S3_BUCKET")"
+  S3_URL+="?region=$(urlencode "${S3_REGION:-auto}")&force_path_style=${S3_FORCE_PATH_STYLE:-false}"
+  S3_URL+="&request_checksum_calculation=when_required&response_checksum_validation=when_required"
+  export S3_URL
+  log "S3 storage configured (bucket ${S3_BUCKET})"
+fi
+
+wait_until_zammad_ready() {
+  log "waiting for the database to be migrated (zammad-init runs as pre-deploy of zammad-railsserver)..."
+  until bundle exec rails r 'ActiveRecord::Migration.check_all_pending!; Package.check_staged_packages_applied!; Translation.any? || raise' &> /dev/null; do
+    sleep 5
+  done
+}
+
+wait_for_elasticsearch() {
+  local waited=0
+  until (echo > "/dev/tcp/${ELASTICSEARCH_HOST}/${ELASTICSEARCH_PORT}") &> /dev/null; do
+    if [ "$waited" -ge "$ELASTICSEARCH_WAIT_SECONDS" ]; then
+      return 1
+    fi
+    [ $((waited % 60)) -eq 0 ] && log "waiting for Elasticsearch at ${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}..."
+    sleep 5
+    waited=$((waited + 5))
+  done
+}
+
+# Creates the Elasticsearch index when it does not exist yet (first install, or
+# a new/empty Elasticsearch volume). Never fatal: the scheduler starts anyway.
+ensure_search_index() {
+  local waited=0
+  # zammad-init stores es_url as its last step; wait for it.
+  until bundle exec rails r "Setting.get('es_url').present? || exit(1)" &> /dev/null; do
+    if [ "$waited" -ge "$ELASTICSEARCH_WAIT_SECONDS" ]; then
+      log "es_url is not configured; skipping the index check"
+      return 1
+    fi
+    sleep 10
+    waited=$((waited + 10))
+  done
+  if ! wait_for_elasticsearch; then
+    log "Elasticsearch not reachable after ${ELASTICSEARCH_WAIT_SECONDS}s"
+    return 1
+  fi
+  if bundle exec rails r "SearchIndexBackend.index_exists?('Ticket') || exit(1)" &> /dev/null; then
+    log "Elasticsearch index exists"
+    return 0
+  fi
+  log "Elasticsearch index missing; building it (zammad:searchindex:rebuild)"
+  bundle exec rake zammad:searchindex:rebuild
+}
+
+nginx_resolver() {
+  local ns
+  ns=$(grep '^nameserver' --max-count 1 < /etc/resolv.conf | awk '{print $2}')
+  case "$ns" in
+    *:*) ns="[${ns#[}"; ns="${ns%]}]" ;;
+  esac
+  echo "resolver ${ns} valid=5s;"
+}
+
+case "$ROLE" in
+  zammad-init)
+    # Upstream init (create/migrate/seed database, locales, add-on packages) with
+    # Elasticsearch handled afterwards, so the pre-deploy step never waits on it.
+    ELASTICSEARCH_ENABLED=false "$ENTRYPOINT" zammad-init
+    # Elasticsearch settings + first-install administrator (see the .rb file).
+    bundle exec rails r /usr/local/share/railway-zammad/railway-post-init.rb
+    log "init finished"
+    ;;
+
+  zammad-railsserver)
+    exec "$ENTRYPOINT" zammad-railsserver
+    ;;
+
+  zammad-scheduler)
+    if [ "$ELASTICSEARCH_ENABLED" != "false" ] && [ "$ELASTICSEARCH_REINDEX" = "true" ]; then
+      wait_until_zammad_ready
+      ensure_search_index || log "WARNING: search index not verified; it is checked again on the next start"
+    fi
+    exec "$ENTRYPOINT" zammad-scheduler
+    ;;
+
+  zammad-websocket)
+    wait_until_zammad_ready
+    # '::' accepts IPv4 and IPv6 (Railway's private network uses both); fall back
+    # to IPv4 only where the container has no IPv6 at all.
+    if [ "$ZAMMAD_WEBSOCKET_BIND" = "::" ] && ! grep -q . /proc/net/if_inet6 2>/dev/null; then
+      ZAMMAD_WEBSOCKET_BIND=0.0.0.0
+    fi
+    log "starting websocket server on [${ZAMMAD_WEBSOCKET_BIND}]:${ZAMMAD_WEBSOCKET_PORT}"
+    exec bundle exec script/websocket-server.rb -b "$ZAMMAD_WEBSOCKET_BIND" -p "$ZAMMAD_WEBSOCKET_PORT" start
+    ;;
+
+  zammad-nginx)
+    wait_until_zammad_ready
+    nginx_resolver > /etc/nginx/conf.d/resolver.conf
+    # Same edits as upstream's zammad-nginx role (plus IPv6-safe resolver above).
+    sed -e "s#\(listen\)\(.*\)80#\1\2${NGINX_PORT}#g" \
+        -e "s#proxy_set_header X-Forwarded-Proto .*;#proxy_set_header X-Forwarded-Proto ${NGINX_SERVER_SCHEME};#g" \
+        -e "s#proxy_pass http://zammad-railsserver;#set \$zammad_railsserver_url http://${ZAMMAD_RAILSSERVER_HOST}:${ZAMMAD_RAILSSERVER_PORT}; proxy_pass \$zammad_railsserver_url;#g" \
+        -e "s#proxy_pass http://zammad-websocket;#set \$zammad_websocket_url http://${ZAMMAD_WEBSOCKET_HOST}:${ZAMMAD_WEBSOCKET_PORT}; proxy_pass \$zammad_websocket_url;#g" \
+        -e "s#server_name .*#server_name ${NGINX_SERVER_NAME};#g" \
+        -e "s#client_max_body_size .*#client_max_body_size ${NGINX_CLIENT_MAX_BODY_SIZE};#g" \
+        -e 's#/var/log/nginx/zammad.\(access\|error\).log#/dev/stdout#g' \
+        < contrib/nginx/zammad.conf > /etc/nginx/sites-enabled/default
+    /usr/sbin/nginx -t
+    log "starting nginx on port ${NGINX_PORT}"
+    exec /usr/sbin/nginx -g 'daemon off;'
+    ;;
+
+  zammad-backup)
+    mkdir -p "${BACKUP_DIR:-/var/tmp/zammad}"
+    rm -rf "${BACKUP_DIR:-/var/tmp/zammad}/lost+found"
+    exec "$ENTRYPOINT" zammad-backup
+    ;;
+
+  *)
+    echo "usage: railway-zammad {zammad-init|zammad-railsserver|zammad-scheduler|zammad-websocket|zammad-nginx|zammad-backup}" >&2
+    exit 64
+    ;;
+esac
